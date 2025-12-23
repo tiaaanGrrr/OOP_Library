@@ -1,0 +1,116 @@
+fitur utama aplikasi library :
+
+--admin--
+0 login
+0 add/edit/delete buku
+0 manage data member
+0 manage laporan minjem & denda buku
+
+--member--
+0 login
+0 liat katalog buku
+0 cari buku (penulis/judul)
+0 minjem buku
+0 balikin buku
+0 liat riwayat minjem, balikin & denda
+
+
+---class---
+
+(Model) -> data&struktur
+1. user (parent)
+2. member
+3. librarian / admin
+4. book
+5. author
+6. katalog
+7. minjem buku
+8. denda 
+9. category
+
+(service) ->logika 
+10. library service
+11. auth service
+12. file storage service
+
+(UI) -> tampilan
+
+13. login view
+14. dashboard view
+15. book view
+16. member view
+17. loan view
+18. report view
+
+----------------------------------------------------------------------
+
+MODEL (Logika Data & OOP)
+1. User (abstract)
+
+Menyimpan data dasar pengguna dan menjadi parent class untuk semua jenis user.
+
+2. Member
+
+Merepresentasikan anggota perpustakaan yang dapat meminjam dan mengembalikan buku.
+
+3. Librarian
+
+Merepresentasikan petugas perpustakaan yang mengelola data buku dan anggota.
+
+4. Book
+
+Menyimpan informasi buku seperti judul, ISBN, tahun, dan status ketersediaan.
+
+5. Author
+
+Menyimpan data penulis buku.
+
+6. Category
+
+Mengelompokkan buku berdasarkan jenis atau kategori.
+
+7. Loan
+
+Mencatat transaksi peminjaman buku oleh anggota.
+
+8. Fine
+
+Menghitung dan menyimpan denda akibat keterlambatan pengembalian buku.
+
+9. Notification
+
+Interface untuk mengirim notifikasi kepada pengguna (misalnya pop-up).
+
+SERVICE (Logika Bisnis)
+10. LibraryService
+
+Mengelola data buku, anggota, dan transaksi peminjaman.
+
+11. AuthService
+
+Menangani proses login dan otorisasi pengguna.
+
+12. FileStorageService
+
+Menyimpan dan memuat data aplikasi ke/dari file CSV.
+
+UI (JavaFX)
+13. LoginView
+
+Menampilkan form login dan menerima input pengguna.
+
+14. DashboardView
+
+Menampilkan menu utama dan navigasi fitur aplikasi.
+
+15. BookView
+
+Menampilkan dan mengelola data buku melalui antarmuka GUI.
+
+16. MemberView
+
+Menampilkan dan mengelola data anggota perpustakaan.
+
+17. LoanView
+
+Menangani tampilan peminjaman, pengembalian, denda buku.
