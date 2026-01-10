@@ -2,7 +2,6 @@ package ui;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
@@ -10,20 +9,19 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
+import model.Book;
 import model.Loan;
 import model.User;
 import service.LibraryService;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-public class LoanView {
+public class HistoryView {
 
     private final User user;
     private final MainLayout layout;
 
-    public LoanView(User user, MainLayout layout) {
+    public HistoryView(User user, MainLayout layout) {
         this.user = user;
         this.layout = layout;
     }
@@ -34,15 +32,17 @@ public class LoanView {
         root.setPrefSize(1920, 1080);
         root.setStyle("-fx-background-color:#FFD9B3;");
 
-        // ===== NAVBAR =====
+        // ================= NAVBAR =================
         Label logo = nav("LendBook", true);
         Label books = nav("Books", false);
         Label loans = nav("Loans", false);
         Label history = nav("History", false);
 
         logo.setOnMouseClicked(e -> layout.showHome(user));
+        logo.setStyle("-fx-cursor: hand;");
+
         books.setOnMouseClicked(e -> layout.showBooks(user));
-        history.setOnMouseClicked(e -> layout.showHistory(user));
+        loans.setOnMouseClicked(e -> layout.showLoans(user));
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
@@ -52,12 +52,12 @@ public class LoanView {
         header.setStyle("-fx-background-color:#FFEAD1;");
         root.setTop(header);
 
-        // ===== CONTENT =====
+        // ================= CONTENT =================
         VBox content = new VBox(25);
         content.setPadding(new Insets(40));
         content.setAlignment(Pos.TOP_CENTER);
 
-        Label title = new Label("Loans");
+        Label title = new Label("History");
         title.setFont(Font.font(26));
 
         VBox container = new VBox(30);
@@ -72,13 +72,16 @@ public class LoanView {
         grid.setVgap(30);
 
         LibraryService service = LibraryService.getInstance();
-        List<Loan> loansData = service.getLoansByMember(user.getId());
+        List<Loan> historyData = service.getHistoryByMember(user.getId());
 
         int col = 0, row = 0;
-        for (Loan loan : loansData) {
-            if (loan.isReturned()) continue;
+        for (Loan loan : historyData) {
 
-            grid.add(loanCard(loan), col, row);
+            // 🔥 AMBIL BOOK ASLI (BUKAN DUMMY)
+            Book book = service.findBookByTitle(loan.getTitle());
+            if (book == null) continue;
+
+            grid.add(historyCard(book), col, row);
 
             col++;
             if (col == 2) {
@@ -99,72 +102,43 @@ public class LoanView {
         return root;
     }
 
-    // ===== LOAN CARD =====
-    private HBox loanCard(Loan loan) {
+    // ================= HISTORY CARD =================
+    private HBox historyCard(Book book) {
 
-        ImageView img = new ImageView(new Image("file:images/book1.png"));
+        ImageView img = new ImageView(new Image("file:" + book.getImagePath()));
         img.setFitWidth(140);
         img.setPreserveRatio(true);
 
-        Label title = new Label(loan.getTitle());
+        Label title = new Label(book.getTitle());
         title.setFont(Font.font(16));
-        title.setStyle("-fx-font-weight:bold;");
+        title.setStyle("-fx-font-weight: bold;");
 
-        Label author = new Label("Author"); // optional (bisa di-extend nanti)
+        Label author = new Label("by " + book.getAuthor());
         author.setTextFill(Color.GRAY);
 
-        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd MMMM yyyy");
+        // ⭐ RATING DARI BOOK ASLI
+        Label rating = new Label("⭐ " + book.getRating());
+        rating.setTextFill(Color.web("#FACC15"));
+        rating.setFont(Font.font(14));
 
-        Label loanDate = new Label("Borrowed: " + loan.getLoanDate().format(fmt));
-        Label dueDate = new Label("Due: " + loan.getReturnDate().format(fmt));
+        VBox info = new VBox(6, title, author, rating);
+        info.setAlignment(Pos.CENTER_LEFT);
 
-        VBox info = new VBox(6, title, author, loanDate, dueDate);
-
-        boolean overdue = loan.getReturnDate().isBefore(LocalDate.now());
-
-        Label overdueLabel = new Label("*overdue");
-        overdueLabel.setTextFill(Color.RED);
-        overdueLabel.setFont(Font.font(12));
-
-        Button btn = new Button("Return");
-        btn.setPrefSize(100, 36);
-        btn.setStyle("""
-            -fx-background-color:#FAD4AF;
-            -fx-background-radius:12;
-            -fx-font-weight:bold;
-        """);
-
-        btn.setOnAction(e -> {
-            LibraryService.getInstance().returnBook(loan.getLoanId());
-            layout.showLoans(user);
-        });
-
-        VBox action = new VBox(6);
-        action.setAlignment(Pos.BOTTOM_RIGHT);
-        if (overdue) action.getChildren().add(overdueLabel);
-        action.getChildren().add(btn);
-
-        Region spacer = new Region();
-        VBox.setVgrow(spacer, Priority.ALWAYS);
-
-        VBox right = new VBox(spacer, action);
-
-        HBox card = new HBox(30,
-                new HBox(20, img, info),
-                right
-        );
-
+        HBox card = new HBox(20, img, info);
         card.setPadding(new Insets(20));
         card.setStyle("""
             -fx-background-color:#FFEAD1;
             -fx-background-radius:20;
         """);
 
-        HBox.setHgrow(right, Priority.ALWAYS);
+        card.setOnMouseClicked(e ->
+                layout.showHistoryDetail(user, book)
+        );
 
         return card;
     }
 
+    // ================= NAV ITEM =================
     private Label nav(String text, boolean logo) {
         Label l = new Label(text);
         l.setFont(Font.font(logo ? 28 : 18));

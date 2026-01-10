@@ -6,43 +6,27 @@ public class Loan {
 
     private String loanId;
     private String memberId;
-    private String isbn;
+    private String title;
     private LocalDate loanDate;
     private LocalDate returnDate;
     private boolean returned;
 
-    public Loan(String loanId, String memberId, String isbn) {
+    public Loan(String loanId, String memberId, String title) {
         this.loanId = loanId;
         this.memberId = memberId;
-        this.isbn = isbn;
+        this.title = title;
         this.loanDate = LocalDate.now();
+        this.returnDate = loanDate.plusDays(7);
         this.returned = false;
     }
 
     // ===== GETTER =====
-    public String getLoanId() {
-        return loanId;
-    }
-
-    public String getMemberId() {
-        return memberId;
-    }
-
-    public String getIsbn() {
-        return isbn;
-    }
-
-    public LocalDate getLoanDate() {
-        return loanDate;
-    }
-
-    public LocalDate getReturnDate() {
-        return returnDate;
-    }
-
-    public boolean isReturned() {
-        return returned;
-    }
+    public String getLoanId() { return loanId; }
+    public String getMemberId() { return memberId; }
+    public String getTitle() { return title; }
+    public LocalDate getLoanDate() { return loanDate; }
+    public LocalDate getReturnDate() { return returnDate; }
+    public boolean isReturned() { return returned; }
 
     // ===== SETTER (UNTUK FILE LOAD) =====
     public void setLoanDate(LocalDate loanDate) {
@@ -57,9 +41,7 @@ public class Loan {
         this.returned = true;
     }
 
-    // ===== ACTION =====
     public void returnBook() {
         this.returned = true;
-        this.returnDate = LocalDate.now();
     }
 }

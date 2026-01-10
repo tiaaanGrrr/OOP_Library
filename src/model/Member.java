@@ -10,11 +10,6 @@ public class Member extends User {
         super(id, username, password);
     }
 
-    @Override
-    public String getRole() {
-        return "MEMBER";
-    }
-
     public void addLoan(Loan loan) {
         loans.add(loan);
     }

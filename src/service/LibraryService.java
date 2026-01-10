@@ -1,71 +1,112 @@
 package service;
 
 import model.*;
-
 import java.util.ArrayList;
 import java.util.List;
 
 public class LibraryService {
 
+    private static LibraryService instance;
+
     private List<Book> books;
     private List<Loan> loans;
     private FileStorageService storage;
 
-    public LibraryService() {
+    private LibraryService() {
         storage = new FileStorageService();
         books = storage.loadBooks();
         loans = storage.loadLoans();
+    }
+
+    public static LibraryService getInstance() {
+        if (instance == null) {
+            instance = new LibraryService();
+        }
+        return instance;
     }
 
     public List<Book> getBooks() {
         return books;
     }
 
-    // ================= ADD BOOK (ADMIN) =================
-    public void addBook(Book book) {
-        books.add(book);
-        storage.saveBooks(books);
-    }
-
-    // ================= BORROW BOOK =================
-    public Loan borrowBook(String memberId, String isbn) {
+    public Book getBookByTitle(String title) {
         for (Book b : books) {
-            if (b.getIsbn().equals(isbn) && b.isAvailable()) {
-                b.borrow();
-
-                Loan loan = new Loan(
-                        "L" + (loans.size() + 1),
-                        memberId,
-                        isbn
-                );
-
-                loans.add(loan);
-                storage.saveBooks(books);
-                storage.saveLoans(loans);
-                return loan;
+            if (b.getTitle().equalsIgnoreCase(title)) {
+                return b;
             }
         }
         return null;
     }
 
-    // ================= RETURN BOOK + FINE =================
-    public Fine returnBook(String loanId) {
+    public List<Loan> getHistoryByMember(String memberId) {
+        List<Loan> result = new ArrayList<>();
+        for (Loan l : loans) {
+            if (l.getMemberId().equals(memberId) && l.isReturned()) {
+                result.add(l);
+            }
+        }
+        return result;
+    }
+
+    public List<Loan> getLoansByMember(String memberId) {
+        List<Loan> result = new ArrayList<>();
+        for (Loan l : loans) {
+            if (l.getMemberId().equals(memberId) && !l.isReturned()) {
+                result.add(l);
+            }
+        }
+        return result;
+    }
+
+    public Loan borrowBook(String memberId, Book book) {
+        if (memberId == null || book == null) return null;
+        if (!book.isAvailable()) return null;
+
+        Loan loan = new Loan(
+                "L" + (loans.size() + 1),
+                memberId,
+                book.getTitle()
+        );
+
+        loans.add(loan);
+        book.setAvailable(false);
+
+        storage.saveLoans(loans);
+        storage.saveBooks(books);
+
+        return loan;
+    }
+
+    public void returnBook(String loanId) {
         for (Loan l : loans) {
             if (l.getLoanId().equals(loanId) && !l.isReturned()) {
                 l.returnBook();
 
                 for (Book b : books) {
-                    if (b.getIsbn().equals(l.getIsbn())) {
-                        b.returnBook();
+                    if (b.getTitle().equals(l.getTitle())) {
+                        b.setAvailable(true);
+                        break;
                     }
                 }
 
-                storage.saveBooks(books);
                 storage.saveLoans(loans);
-
-                return new Fine("F-" + loanId, l);
+                storage.saveBooks(books);
+                return;
+            }
+        }
+    }
+    public Book findBookByTitle(String title) {
+        for (Book b : books) {
+            if (b.getTitle().equalsIgnoreCase(title)) {
+                return b;
             }
         }
         return null;
+    }
+
+
+    // ⭐ SIMPAN RATING
+    public void saveBooks() {
+        storage.saveBooks(books);
     }
 }

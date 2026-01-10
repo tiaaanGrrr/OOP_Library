@@ -11,13 +11,11 @@ public class FileStorageService {
     private static final String DATA_DIR = "data";
     private static final String BOOK_FILE = DATA_DIR + "/books.csv";
     private static final String LOAN_FILE = DATA_DIR + "/loans.csv";
-    private static final String MEMBER_FILE = DATA_DIR + "/members.csv";
 
     public FileStorageService() {
         new File(DATA_DIR).mkdirs();
-        createIfNotExists(BOOK_FILE, "isbn,title,available");
-        createIfNotExists(LOAN_FILE, "loanId,memberId,isbn,loanDate,returnDate,returned");
-        createIfNotExists(MEMBER_FILE, "id,username,password,role");
+        createIfNotExists(BOOK_FILE, "title,author,imagePath,description,rating,available");
+        createIfNotExists(LOAN_FILE, "loanId,memberId,title,loanDate,returnDate,returned");
     }
 
     private void createIfNotExists(String path, String header) {
@@ -33,24 +31,41 @@ public class FileStorageService {
 
     // ================= BOOK =================
     public List<Book> loadBooks() {
-        List<Book> list = new ArrayList<>();
+        List<Book> books = new ArrayList<>();
+
         try (Scanner sc = new Scanner(new File(BOOK_FILE))) {
-            sc.nextLine();
+            sc.nextLine(); // skip header
             while (sc.hasNextLine()) {
                 String[] d = sc.nextLine().split(",");
-                list.add(new Book(d[0], d[1], Boolean.parseBoolean(d[2])));
+
+                books.add(new Book(
+                        d[0],                       // title
+                        d[1],                       // author
+                        d[2],                       // imagePath
+                        d[3],                       // description
+                        Integer.parseInt(d[4]),     // rating
+                        Boolean.parseBoolean(d[5])  // available
+                ));
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return list;
+
+        return books;
     }
 
     public void saveBooks(List<Book> books) {
         try (PrintWriter pw = new PrintWriter(new FileWriter(BOOK_FILE))) {
-            pw.println("isbn,title,available");
+            pw.println("title,author,imagePath,description,rating,available");
             for (Book b : books) {
-                pw.println(b.getIsbn() + "," + b.getTitle() + "," + b.isAvailable());
+                pw.println(
+                        b.getTitle() + "," +
+                                b.getAuthor() + "," +
+                                b.getImagePath() + "," +
+                                b.getDescription() + "," +
+                                b.getRating() + "," +
+                                b.isAvailable()
+                );
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -59,9 +74,10 @@ public class FileStorageService {
 
     // ================= LOAN =================
     public List<Loan> loadLoans() {
-        List<Loan> list = new ArrayList<>();
+        List<Loan> loans = new ArrayList<>();
+
         try (Scanner sc = new Scanner(new File(LOAN_FILE))) {
-            sc.nextLine();
+            sc.nextLine(); // skip header
             while (sc.hasNextLine()) {
                 String[] d = sc.nextLine().split(",");
 
@@ -76,22 +92,23 @@ public class FileStorageService {
                     l.markReturned();
                 }
 
-                list.add(l);
+                loans.add(l);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return list;
+
+        return loans;
     }
 
     public void saveLoans(List<Loan> loans) {
         try (PrintWriter pw = new PrintWriter(new FileWriter(LOAN_FILE))) {
-            pw.println("loanId,memberId,isbn,loanDate,returnDate,returned");
+            pw.println("loanId,memberId,title,loanDate,returnDate,returned");
             for (Loan l : loans) {
                 pw.println(
                         l.getLoanId() + "," +
                                 l.getMemberId() + "," +
-                                l.getIsbn() + "," +
+                                l.getTitle() + "," +
                                 l.getLoanDate() + "," +
                                 (l.getReturnDate() == null ? "" : l.getReturnDate()) + "," +
                                 l.isReturned()
@@ -100,24 +117,5 @@ public class FileStorageService {
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-
-    // ================= USER =================
-    public List<User> loadUsers() {
-        List<User> users = new ArrayList<>();
-        try (Scanner sc = new Scanner(new File(MEMBER_FILE))) {
-            sc.nextLine();
-            while (sc.hasNextLine()) {
-                String[] d = sc.nextLine().split(",");
-                if (d[3].equals("ADMIN")) {
-                    users.add(new Librarian(d[0], d[1], d[2]));
-                } else {
-                    users.add(new Member(d[0], d[1], d[2]));
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return users;
     }
 }

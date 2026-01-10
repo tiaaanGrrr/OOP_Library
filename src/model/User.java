@@ -1,6 +1,7 @@
 package model;
 
-public abstract class User {
+public class User {
+
     protected String id;
     protected String username;
     protected String password;
@@ -11,12 +12,15 @@ public abstract class User {
         this.password = password;
     }
 
-    public String getId() { return id; }
-    public String getUsername() { return username; }
-
-    public boolean checkPassword(String input) {
-        return password.equals(input);
+    public String getId() {
+        return id;
     }
 
-    public abstract String getRole();
+    public String getUsername() {
+        return username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
 }
